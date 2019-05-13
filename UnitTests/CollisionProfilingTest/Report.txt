@@ -1,0 +1,27 @@
+PRE-SIMD TEST
+--------------
+
+The initial profiling test ran the collisions on 100 objects in randomly generated positions for 1000 frames. 
+According to the profiler, two methods dominated in terms of sampling:
+
+TransformFromAtoB took up 6200 samples (23% CPU time). 
+
+Transforming from local to world space was the most expensive operation from the test. 
+
+In second place, the methods AProjectionOntoB_X, and AProjectionOntoB_Y collectively took up around 1200 samples, or 45% of CPU time. 
+For these methods, taking the matrix inverse was the most expensive operation. 
+
+Clearly, improving the inverse matrix and matrix transform operations would greatly speed up the collision test. 
+
+This test took 19 seconds on average.
+
+POST-SIMD TEST
+--------------
+
+With the SIMD implementations for Vector4 and Matrix4, the test took 14 seconds! An entire five seconds shaved off by improving dot product, matrix inverse and multiply.
+
+TransformFromAtoB was still the most consuming function, with 7229 samples, or 47% of total CPU time. Impressively, InverseSSE and Matrix multiply were lower in the list than expected. InverseSSE only took 
+2100 total samples, and Matrix multiply only 1900. 
+
+The hypothesis from the last test was correct, in that improving the matrix inverse and multiply would decrease the runtime!
+
