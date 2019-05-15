@@ -3,6 +3,7 @@
 #include <smmintrin.h>
 #include <math.h>
 #include <utility>
+#include <glm/glm.hpp>
 
 #include "External/GLib/GLib.h"
 #include "Vector3.h"
@@ -869,6 +870,36 @@ namespace Math {
 		result.matrix[3][1] = translation.y;
 		result.matrix[3][2] = translation.z;
 		result.matrix[3][3] = 1;
+
+		return result;
+	}
+
+	static glm::mat4 Matrix4ToGLM(Math::Matrix4 matrix) {
+
+		glm::mat4 result = glm::mat4();
+
+		for (int i = 0; i < 4; i++) {
+
+			for (int j = 0; j < 4; j++) {
+
+				result[i][j] = matrix.matrix[i][j];
+			}
+		}
+
+		return result;
+	}
+
+	static Math::Matrix4 GLMtoMatrix4(glm::mat4 matrix) {
+
+		Math::Matrix4 result = Math::Matrix4();
+
+		for (int i = 0; i < 4; i++) {
+
+			for (int j = 0; j < 4; j++) {
+
+				result.matrix[i][j] = matrix[i][j];
+			}
+		}
 
 		return result;
 	}

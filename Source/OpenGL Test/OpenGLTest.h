@@ -11,6 +11,10 @@
 #include <gl/freeglut.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <Source/Engine/Vector2.h>
+#include <Source/Engine/Vector3.h>
+#include <Source/Engine/Matrix4.h>
+
 using namespace glm;
 
 #include "common/shader.hpp"
