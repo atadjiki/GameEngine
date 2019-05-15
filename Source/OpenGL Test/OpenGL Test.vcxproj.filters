@@ -22,10 +22,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="shaders\fragmentshader.fragmentshader">
+    <None Include="shaders\fs.fragmentshader">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\vertexshader.vertexshader">
+    <None Include="shaders\vs.vertexshader">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
