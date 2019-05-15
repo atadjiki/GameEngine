@@ -70,7 +70,7 @@ int main(void)
 	GLuint Texture = loadDDS("uvtemplate.DDS");
 
 	// Get a handle for our "myTextureSampler" uniform
-	GLuint TextureID = glGetUniformLocation(shaderID, "myTextureSampler");
+	GLuint TextureID = glGetUniformLocation(shaderID, "sampler");
 
 	GLuint vertexbuffer;
 	glGenBuffers(1, &vertexbuffer);
