@@ -107,6 +107,7 @@ namespace Math {
 			return Vector4(this->x * B, this->y * B, this->z * B, this->w * B);
 		}
 
+
 		Vector3 toVector3() {
 
 			Vector3 result;
@@ -963,6 +964,25 @@ namespace Math {
 
 		return result;
 
+	}
+
+	static Vector4 GLMtoVector4(glm::vec3 vector) {
+
+		Vector4 result = Vector4();
+		result.x = vector.x;
+		result.y = vector.y;
+		result.z = vector.z;
+		result.w = 1;
+		return result;
+	}
+
+	static glm::vec3 Vector4toGLM (Vector4 vector) {
+
+		glm::vec3 result = glm::vec3();
+		result.x = vector.x;
+		result.y = vector.y;
+		result.z = vector.z;
+		return result;
 	}
 
 	static bool Equals(const Matrix4 &A, const Matrix4 &B) {

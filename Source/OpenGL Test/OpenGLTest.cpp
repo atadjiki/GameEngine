@@ -37,53 +37,50 @@ int main(void)
 
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+	// Hide the mouse and enable unlimited mouvement
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	// Set the mouse at the center of the screen
+	glfwPollEvents();
+	glfwSetCursorPos(window, 1024 / 2, 768 / 2); 
+	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
 	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+	// Enable depth test
+	glEnable(GL_DEPTH_TEST);
+	// Accept fragment if it closer to the camera than the former one
+	glDepthFunc(GL_LESS);
+
+	// Cull triangles which normal is not towards the camera
+	glEnable(GL_CULL_FACE);
 
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
 
 	// Create and compile our GLSL program from the shaders
-	GLuint programID = LoadShaders("shaders/vs.vertexshader", "shaders/fs.fragmentshader");
+	GLuint shaderID = LoadShaders("shaders/vs.vertexshader", "shaders/fs.fragmentshader");
 
 	// Get a handle for our "MVP" uniform
-	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+	GLuint MatrixID = glGetUniformLocation(shaderID, "MVP");
 
-	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-	Math::Matrix4 Projection = Math::GLMtoMatrix4(glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f));
-	// Or, for an ortho camera :
-	//glm::mat4 Projection = glm::ortho(-10.0f,10.0f,-10.0f,10.0f,0.0f,100.0f); // In world coordinates
+	// Load the texture
+	GLuint Texture = loadDDS("uvtemplate.DDS");
 
-	// Camera matrix
-	Math::Matrix4 View = Math::GLMtoMatrix4(glm::lookAt(
-		glm::vec3(4, 3, 4),
-		glm::vec3(0, 0, 0),
-		glm::vec3(0, 1, 0)
-	));
-
-	// Model matrix : an identity matrix (model will be at the origin)
-	Math::Matrix4 Model = Math::IdentityMatrix();
-	// Our ModelViewProjection : multiplication of our 3 matrices
-	Math::Matrix4 MVP = Model * View * Projection;
-
-	
+	// Get a handle for our "myTextureSampler" uniform
+	GLuint TextureID = glGetUniformLocation(shaderID, "myTextureSampler");
 
 	GLuint vertexbuffer;
 	glGenBuffers(1, &vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_data), cube_data, GL_STATIC_DRAW);
 
-	GLuint colorbuffer;
-	glGenBuffers(1, &colorbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_data), cube_data, GL_STATIC_DRAW);
-
-	// Enable depth test
-	glEnable(GL_DEPTH_TEST);
-	// Accept fragment if it closer to the camera than the former one
-	glDepthFunc(GL_LESS);
+	GLuint uvbuffer;
+	glGenBuffers(1, &uvbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_uv), cube_uv, GL_STATIC_DRAW);
 
 	do {
 
@@ -91,11 +88,24 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Use our shader
-		glUseProgram(programID);
+		glUseProgram(shaderID);
+
+		// Compute the MVP matrix from keyboard and mouse input
+		computeMatricesFromInputs();
+		Math::Matrix4 ProjectionMatrix = Math::GLMtoMatrix4(getProjectionMatrix());
+		Math::Matrix4 ViewMatrix = Math::GLMtoMatrix4(getViewMatrix());
+		Math::Matrix4 ModelMatrix = Math::IdentityMatrix();
+		Math::Matrix4 MVP =  ModelMatrix * ViewMatrix * ProjectionMatrix;
 
 		// Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP.matrix[0][0]);
+
+		// Bind our texture in Texture Unit 0
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Texture);
+		// Set our "myTextureSampler" sampler to use Texture Unit 0
+		glUniform1i(TextureID, 0);
 
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
@@ -109,12 +119,12 @@ int main(void)
 			(void*)0            // array buffer offset
 		);
 
-		// 2nd attribute buffer : colors
+		// 2nd attribute buffer : UVs
 		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
 		glVertexAttribPointer(
 			1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-			3,                                // size
+			2,                                // size : U+V => 2
 			GL_FLOAT,                         // type
 			GL_FALSE,                         // normalized?
 			0,                                // stride
@@ -122,9 +132,10 @@ int main(void)
 		);
 
 		// Draw the triangle !
-		glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
+		glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12*3 indices starting at 0 -> 12 triangles
 
 		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
 
 		// Swap buffers
 		glfwSwapBuffers(window);
@@ -136,7 +147,7 @@ int main(void)
 
 	// Cleanup VBO and shader
 	glDeleteBuffers(1, &vertexbuffer);
-	glDeleteProgram(programID);
+	glDeleteProgram(shaderID);
 	glDeleteVertexArrays(1, &VertexArrayID);
 
 	// Close OpenGL window and terminate GLFW
