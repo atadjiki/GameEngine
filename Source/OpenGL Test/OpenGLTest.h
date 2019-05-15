@@ -9,7 +9,13 @@
 #include <GLFW/glfw3.h>
 #include <gl/GL.h>
 #include <gl/freeglut.h>
+#include <glm/glm.hpp>
+using namespace glm;
 
-#include "Source/Engine/Matrix4.h"
+#include "common/shader.hpp"
 
 GLFWwindow* window; // (In the accompanying source code, this variable is global for simplicity)
+GLuint VertexArrayID;
+// This will identify our vertex buffer
+GLuint vertexbuffer;
+GLuint programID;
