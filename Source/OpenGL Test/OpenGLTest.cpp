@@ -86,7 +86,7 @@ void ProcessRenderInfo(RenderInfo renderInfo) {
 	computeMatricesFromInputs();
 	Math::Matrix4 ProjectionMatrix = Math::GLMtoMatrix4(getProjectionMatrix());
 	Math::Matrix4 ViewMatrix = Math::GLMtoMatrix4(getViewMatrix());
-	Math::Matrix4 ModelMatrix = Math::IdentityMatrix();
+	Math::Matrix4 ModelMatrix = Math::TranslationMatrix_Row((*renderInfo.gameObject)->physics->transform.position);
 	Math::Matrix4 MVP = ModelMatrix * ViewMatrix * ProjectionMatrix;
 
 	// Send our transformation to the currently bound shader, 
@@ -168,7 +168,7 @@ int main(void)
 	glBufferData(GL_ARRAY_BUFFER, renderInfo.uv_size, renderInfo.uv_data, GL_STATIC_DRAW);
 
 	renderInfo.gameObject = new SmartPointer<GameObject>(new GameObject());
-	renderInfo.gameObject->operator->()->physics->transform.position = Math::Vector4(20, 50, 0);
+	renderInfo.gameObject->operator->()->physics->transform.position = Math::Vector4(1, 0, 0);
 
 	do {
 
