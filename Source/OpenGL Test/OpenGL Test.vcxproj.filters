@@ -59,9 +59,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OpenGLTest.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="common\quaternion_utils.hpp">
       <Filter>common</Filter>
     </ClInclude>
