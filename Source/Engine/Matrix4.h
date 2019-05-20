@@ -3,8 +3,8 @@
 #include <smmintrin.h>
 #include <math.h>
 #include <utility>
-#include <glm/glm.hpp>
 
+#include "glm/glm.hpp"
 #include "External/GLib/GLib.h"
 #include "Vector3.h"
 

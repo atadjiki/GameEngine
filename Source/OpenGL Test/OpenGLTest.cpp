@@ -1,7 +1,25 @@
 #include "OpenGLTest.h"
+#include "Source/Engine/SmartPointer.h"
+#include "Source/Engine/GameObject.h"
 
-int main(void)
-{
+struct RenderInfo {
+
+	GLuint VertexArrayID;
+	GLuint shaderID;
+	GLuint MatrixID;
+	GLuint Texture;
+	GLuint TextureID;
+	GLuint vertexbuffer;
+	const GLfloat * vertex_data;
+	size_t vertex_size;
+	GLuint uvbuffer;
+	const GLfloat * uv_data;
+	size_t uv_size;
+	SmartPointer<GameObject> * gameObject;
+};
+
+int InitOGL() {
+
 	// Initialise GLFW
 	if (!glfwInit())
 	{
@@ -42,7 +60,7 @@ int main(void)
 
 	// Set the mouse at the center of the screen
 	glfwPollEvents();
-	glfwSetCursorPos(window, 1024 / 2, 768 / 2); 
+	glfwSetCursorPos(window, 1024 / 2, 768 / 2);
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
 	// Dark blue background
@@ -56,86 +74,108 @@ int main(void)
 	// Cull triangles which normal is not towards the camera
 	glEnable(GL_CULL_FACE);
 
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
+	return 0;
+}
+
+void ProcessRenderInfo(RenderInfo renderInfo) {
+
+	// Use our shader
+	glUseProgram(renderInfo.shaderID);
+
+	// Compute the MVP matrix from keyboard and mouse input
+	computeMatricesFromInputs();
+	Math::Matrix4 ProjectionMatrix = Math::GLMtoMatrix4(getProjectionMatrix());
+	Math::Matrix4 ViewMatrix = Math::GLMtoMatrix4(getViewMatrix());
+	Math::Matrix4 ModelMatrix = Math::IdentityMatrix();
+	Math::Matrix4 MVP = ModelMatrix * ViewMatrix * ProjectionMatrix;
+
+	// Send our transformation to the currently bound shader, 
+	// in the "MVP" uniform
+	glUniformMatrix4fv(renderInfo.MatrixID, 1, GL_FALSE, &MVP.matrix[0][0]);
+
+	// Bind our texture in Texture Unit 0
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, renderInfo.Texture);
+	// Set our "myTextureSampler" sampler to use Texture Unit 0
+	glUniform1i(renderInfo.TextureID, 0);
+
+	// 1rst attribute buffer : vertices
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, renderInfo.vertexbuffer);
+	glVertexAttribPointer(
+		0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
+		3,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		0,                  // stride
+		(void*)0            // array buffer offset
+	);
+
+	// 2nd attribute buffer : UVs
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, renderInfo.uvbuffer);
+	glVertexAttribPointer(
+		1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+		2,                                // size : U+V => 2
+		GL_FLOAT,                         // type
+		GL_FALSE,                         // normalized?
+		0,                                // stride
+		(void*)0                          // array buffer offset
+	);
+
+	// Draw the triangle !
+	glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12*3 indices starting at 0 -> 12 triangles
+
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+}
+
+int main(void)
+{
+	
+	if (InitOGL() < 0) {
+		return -1;
+	}
+
+	RenderInfo renderInfo = RenderInfo();
+
+	glGenVertexArrays(1, &renderInfo.VertexArrayID);
+	glBindVertexArray(renderInfo.VertexArrayID);
 
 	// Create and compile our GLSL program from the shaders
-	GLuint shaderID = LoadShaders("shaders/vs.vertexshader", "shaders/fs.fragmentshader");
+	renderInfo.shaderID = LoadShaders("shaders/vs.vertexshader", "shaders/fs.fragmentshader");
 
 	// Get a handle for our "MVP" uniform
-	GLuint MatrixID = glGetUniformLocation(shaderID, "MVP");
+	renderInfo.MatrixID = glGetUniformLocation(renderInfo.shaderID, "MVP");
 
 	// Load the texture
-	GLuint Texture = loadDDS("uvtemplate.DDS");
+	renderInfo.Texture = loadDDS("uvtemplate.DDS");
 
 	// Get a handle for our "myTextureSampler" uniform
-	GLuint TextureID = glGetUniformLocation(shaderID, "sampler");
+	renderInfo.TextureID = glGetUniformLocation(renderInfo.shaderID, "sampler");
 
-	GLuint vertexbuffer;
-	glGenBuffers(1, &vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_data), cube_data, GL_STATIC_DRAW);
+	renderInfo.vertex_data = cube_data;
+	renderInfo.vertex_size = sizeof(cube_data);
+	renderInfo.uv_data = cube_uv;
+	renderInfo.uv_size = sizeof(cube_uv);
 
-	GLuint uvbuffer;
-	glGenBuffers(1, &uvbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_uv), cube_uv, GL_STATIC_DRAW);
+	glGenBuffers(1, &renderInfo.vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, renderInfo.vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, renderInfo.vertex_size, renderInfo.vertex_data, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &renderInfo.uvbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, renderInfo.uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, renderInfo.uv_size, renderInfo.uv_data, GL_STATIC_DRAW);
+
+	renderInfo.gameObject = new SmartPointer<GameObject>(new GameObject());
+	renderInfo.gameObject->operator->()->physics->transform.position = Math::Vector4(20, 50, 0);
 
 	do {
 
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Use our shader
-		glUseProgram(shaderID);
-
-		// Compute the MVP matrix from keyboard and mouse input
-		computeMatricesFromInputs();
-		Math::Matrix4 ProjectionMatrix = Math::GLMtoMatrix4(getProjectionMatrix());
-		Math::Matrix4 ViewMatrix = Math::GLMtoMatrix4(getViewMatrix());
-		Math::Matrix4 ModelMatrix = Math::IdentityMatrix();
-		Math::Matrix4 MVP =  ModelMatrix * ViewMatrix * ProjectionMatrix;
-
-		// Send our transformation to the currently bound shader, 
-		// in the "MVP" uniform
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP.matrix[0][0]);
-
-		// Bind our texture in Texture Unit 0
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Texture);
-		// Set our "myTextureSampler" sampler to use Texture Unit 0
-		glUniform1i(TextureID, 0);
-
-		// 1rst attribute buffer : vertices
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-		glVertexAttribPointer(
-			0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
-		);
-
-		// 2nd attribute buffer : UVs
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-		glVertexAttribPointer(
-			1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-			2,                                // size : U+V => 2
-			GL_FLOAT,                         // type
-			GL_FALSE,                         // normalized?
-			0,                                // stride
-			(void*)0                          // array buffer offset
-		);
-
-		// Draw the triangle !
-		glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12*3 indices starting at 0 -> 12 triangles
-
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
+		ProcessRenderInfo(renderInfo);
 
 		// Swap buffers
 		glfwSwapBuffers(window);
@@ -146,9 +186,9 @@ int main(void)
 		glfwWindowShouldClose(window) == 0);
 
 	// Cleanup VBO and shader
-	glDeleteBuffers(1, &vertexbuffer);
-	glDeleteProgram(shaderID);
-	glDeleteVertexArrays(1, &VertexArrayID);
+	glDeleteBuffers(1, &renderInfo.vertexbuffer);
+	glDeleteProgram(renderInfo.shaderID);
+	glDeleteVertexArrays(1, &renderInfo.VertexArrayID);
 
 	// Close OpenGL window and terminate GLFW
 	glfwTerminate();

@@ -1,0 +1,26 @@
+#version 330 core
+
+// Interpolated values from the vertex shaders
+in vec2 UV;
+
+// Ouput data
+out vec3 color;
+
+// Values that stay constant for the whole mesh.
+uniform sampler2D sampler;
+
+void main(){
+
+	// Output color = color of the texture at the specified UV
+	vec3 sample = texture(sampler, UV).rgb;
+
+	if(sample.x >= 0.9f){
+		color = vec3(1.0f, 0.0f, 0.0f);
+	}
+	else if(sample.y >= 0.9f){
+		color = vec3(0.0f, 1.0f, 0.0f);
+	}
+	else{
+		color = vec3(0.0f, 0.0f, 1.0f);
+	}
+}

@@ -52,6 +52,15 @@
     <Filter Include="Header Files\Messaging">
       <UniqueIdentifier>{577b69cc-84a9-4c2f-b798-f492b408d0a2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\OGL">
+      <UniqueIdentifier>{6963465b-23ad-4a00-bf3d-1a0fb630eabb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\OGL\common">
+      <UniqueIdentifier>{cc446a12-859e-4aa5-ab5b-799e9312c130}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\OGL\shaders">
+      <UniqueIdentifier>{e4a0f7c1-c695-4f95-83dd-9c19e7d92701}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DynamicArray.cpp">
@@ -59,6 +68,30 @@
     </ClCompile>
     <ClCompile Include="ConsolePrint.Win32.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\controls.cpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\objloader.cpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\quaternion_utils.cpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\shader.cpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\tangentspace.cpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\text2D.cpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\texture.cpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\vboindexer.cpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -89,9 +122,6 @@
     <ClInclude Include="PhysicsComponent.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
-    <ClInclude Include="Render.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="SmartPointer.h">
       <Filter>Header Files\Memory</Filter>
     </ClInclude>
@@ -119,8 +149,44 @@
     <ClInclude Include="MessagingSystem.h">
       <Filter>Header Files\Messaging</Filter>
     </ClInclude>
+    <ClInclude Include="GLibRender.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="common\controls.hpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\objloader.hpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\quaternion_utils.hpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\shader.hpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\tangentspace.hpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text2D.hpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\texture.hpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\vboindexer.hpp">
+      <Filter>Header Files\Graphics\OGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGLRender.h">
+      <Filter>Header Files\Graphics\OGL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="shaders\fs.fragmentshader">
+      <Filter>Header Files\Graphics\OGL\shaders</Filter>
+    </None>
+    <None Include="shaders\vs.vertexshader">
+      <Filter>Header Files\Graphics\OGL\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

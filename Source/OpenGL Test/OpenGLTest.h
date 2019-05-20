@@ -22,10 +22,6 @@ using namespace glm;
 #include "common/controls.hpp"
 
 GLFWwindow* window; // (In the accompanying source code, this variable is global for simplicity)
-GLuint VertexArrayID;
-// This will identify our vertex buffer
-GLuint vertexbuffer;
-GLuint shaderID;
 
 static const GLfloat cube_data[] = {
 	-1.0f,-1.0f,-1.0f, // triangle 1 : begin

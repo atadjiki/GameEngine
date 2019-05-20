@@ -150,5 +150,6 @@
     <None Include="VSOutput.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
