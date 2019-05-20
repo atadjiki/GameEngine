@@ -1,6 +1,6 @@
 #include "OpenGLTest.h"
-#include "Source/Engine/SmartPointer.h"
-#include "Source/Engine/GameObject.h"
+#include "Source/Engine/Transform.h"
+#include <vector>
 
 struct RenderInfo {
 
@@ -15,8 +15,10 @@ struct RenderInfo {
 	GLuint uvbuffer;
 	const GLfloat * uv_data;
 	size_t uv_size;
-	SmartPointer<GameObject> * gameObject;
+	Math::Transform transform;
 };
+
+static std::vector<RenderInfo> RenderQueue = std::vector<RenderInfo>();
 
 int InitOGL() {
 
@@ -37,7 +39,6 @@ int InitOGL() {
 																   // Open a window and create its OpenGL context
 	window = glfwCreateWindow(1024, 768, "Tutorial 03 - Matrices", NULL, NULL);
 	if (window == NULL) {
-		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
 		getchar();
 		glfwTerminate();
 		return -1;
@@ -86,7 +87,7 @@ void ProcessRenderInfo(RenderInfo renderInfo) {
 	computeMatricesFromInputs();
 	Math::Matrix4 ProjectionMatrix = Math::GLMtoMatrix4(getProjectionMatrix());
 	Math::Matrix4 ViewMatrix = Math::GLMtoMatrix4(getViewMatrix());
-	Math::Matrix4 ModelMatrix = Math::TranslationMatrix_Row((*renderInfo.gameObject)->physics->transform.position);
+	Math::Matrix4 ModelMatrix = Math::TranslationMatrix_Row(renderInfo.transform.position);
 	Math::Matrix4 MVP = ModelMatrix * ViewMatrix * ProjectionMatrix;
 
 	// Send our transformation to the currently bound shader, 
@@ -130,13 +131,14 @@ void ProcessRenderInfo(RenderInfo renderInfo) {
 	glDisableVertexAttribArray(1);
 }
 
-int main(void)
-{
-	
-	if (InitOGL() < 0) {
-		return -1;
-	}
+void CleanRenderInfo(RenderInfo renderInfo) {
 
+	glDeleteBuffers(1, &renderInfo.vertexbuffer);
+	glDeleteProgram(renderInfo.shaderID);
+	glDeleteVertexArrays(1, &renderInfo.VertexArrayID);
+}
+
+RenderInfo BuildTestRenderInfo() {
 	RenderInfo renderInfo = RenderInfo();
 
 	glGenVertexArrays(1, &renderInfo.VertexArrayID);
@@ -167,16 +169,51 @@ int main(void)
 	glBindBuffer(GL_ARRAY_BUFFER, renderInfo.uvbuffer);
 	glBufferData(GL_ARRAY_BUFFER, renderInfo.uv_size, renderInfo.uv_data, GL_STATIC_DRAW);
 
-	renderInfo.gameObject = new SmartPointer<GameObject>(new GameObject());
-	renderInfo.gameObject->operator->()->physics->transform.position = Math::Vector4(1, 0, 0);
+	renderInfo.transform = Math::Transform();
+	renderInfo.transform.position = Math::Vector4(1, 0, 0);
+
+	return renderInfo;
+}
+
+void AddRenderInfo(RenderInfo renderInfo) {
+
+	RenderQueue.push_back(renderInfo);
+}
+
+void RemoveRenderInfo(RenderInfo renderInfo) {
+
+	for (int i = 0; i < RenderQueue.size(); i++) {
+
+		if (&renderInfo == &RenderQueue[i]) {
+
+			RenderQueue.erase(RenderQueue.begin() + i);
+		}
+	}
+}
+
+void ClearRenderQueue() {
+
+	RenderQueue.clear();
+}
+
+int main(void)
+{
+	
+	if (InitOGL() < 0) {
+		return -1;
+	}
+
+	AddRenderInfo(BuildTestRenderInfo());
 
 	do {
 
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		ProcessRenderInfo(renderInfo);
-
+		for (int i = 0; i < RenderQueue.size(); i++) {
+			ProcessRenderInfo(RenderQueue[i]);
+		}
+		
 		// Swap buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -186,9 +223,9 @@ int main(void)
 		glfwWindowShouldClose(window) == 0);
 
 	// Cleanup VBO and shader
-	glDeleteBuffers(1, &renderInfo.vertexbuffer);
-	glDeleteProgram(renderInfo.shaderID);
-	glDeleteVertexArrays(1, &renderInfo.VertexArrayID);
+	for (int i = 0; i < RenderQueue.size(); i++) {
+		CleanRenderInfo(RenderQueue[i]);
+	}
 
 	// Close OpenGL window and terminate GLFW
 	glfwTerminate();
