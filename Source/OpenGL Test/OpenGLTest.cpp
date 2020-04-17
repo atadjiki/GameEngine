@@ -23,21 +23,21 @@ int main(void)
 
 	do {
 
-		if (forwards) {
-			translation += increment;
-		}
-		else {
-			translation -= increment;
-		}
+		//if (forwards) {
+		//	translation += increment;
+		//}
+		//else {
+		//	translation -= increment;
+		//}
 
-		if (translation >= maxTranslation) {
-			forwards = false;
-		}
-		else if (translation <= -1 * maxTranslation) {
-			forwards = true;
-		}
+		//if (translation >= maxTranslation) {
+		//	forwards = false;
+		//}
+		//else if (translation <= -1 * maxTranslation) {
+		//	forwards = true;
+		//}
 
-		(*gameObject)->physics->transform.position = Math::Vector4(translation, 0, 0);
+		//(*gameObject)->physics->transform.position = Math::Vector4(translation, 0, 0);
 
 		DoRender();
 
